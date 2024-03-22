@@ -1,0 +1,229 @@
+// --- Обязательный включаемый файл
+#include <windows.h>
+#include <stdio.h> // работа с файлом
+
+// --- Описание функции главного окна
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+
+
+
+// --- Глобальные переменные
+HINSTANCE hInst;           	// Дескриптор экземпляра приложения
+char ClassName[]="Window"; 			// Название класса окна
+char AppTitle[]="Application Win32"; 	// Заголовок главного окна
+
+static HMENU hMainMenu; // создаем дескриптор главного меню
+static HMENU hMenuFile; //#1 создаем дескриптор всплывающего меню "Файл"
+static HMENU hMenuSetup; //#2 создаем дескриптор всплывающего меню "Инструменты"
+static HMENU hMenuHelp; //#3 создаем дескриптор всплывающего меню "Помощь"
+static HWND hWndStatic1;
+static HWND hWndStatic2;
+static HWND hWndStatic3;
+static HWND hWndEdit1;
+static HWND hWndEdit2;
+static HWND hWndEdit3;
+
+#define ID_static1 11
+#define ID_static2 12
+#define ID_static3 13
+#define ID_edit1 21 
+#define ID_edit2 22
+#define ID_edit3 23 
+#define ID_OPEN 	 40  // создаем идентификатор для пункта "Открыть"
+#define ID_SAVE 	 41  // создаем идентификатор для пункта "Открыть"
+#define ID_EXIT	 42	// создаем идентификатор для пункта "Выход"
+#define ID_HELP 	 43	// создаем идентификатор для пункта-меню "Помощь"
+
+
+// --- Функция WinMain
+int WINAPI WinMain(
+	HINSTANCE hInstance,                	// Дескриптор экземпляра приложения
+	HINSTANCE hPrevInstance,         	// В Win32 всегда равен NULL
+	LPSTR lpCmdLine,                         	// Указатель на командную строку. Он позволяет
+	// приложению получать данные из командной строки.
+	int nCmdShow                                 	// Определяет, как приложение первоначально
+	// отображается на дисплее: пиктограммой (nCmdShow = SW_SHOWMINNOACTIVE) или в виде открытого окна (nCmdShow = SW_SHOWNORMAL).
+	)
+{
+	WNDCLASS wc;             	// Структура для информации о класса окна
+	HWND hWnd;  	// Дескриптор главного окна приложения
+	MSG msg;         	// Структура для хранения сообщения
+
+	// Сохраняем дескриптор экземпляра приложения в глобальной переменной,
+	// чтобы при необходимости воспользоваться им в функции окна.
+	hInst=hInstance;
+
+	// --- Работающая копия не найдена - функция WinMain приступает к инициализации.
+	// Заполнение структуры WNDCLASS для регистрации класса окна.
+	memset(&wc, 0, sizeof(wc));
+	wc.lpszClassName=ClassName;                                                    	// Имя класса окон
+	wc.lpfnWndProc=(WNDPROC)WndProc;                                  	// Адрес оконной функции
+	wc.style=CS_HREDRAW|CS_VREDRAW;                                              	// Стиль класса окон
+	wc.hInstance=hInstance;                                                               	// Экземпляр приложения
+	wc.hIcon=LoadIcon(NULL,IDI_APPLICATION);                    	// Пиктограмма для окон
+	wc.hCursor=LoadCursor(NULL,IDC_ARROW);                                      	// Курсор мыши для окон
+	wc.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);        	// Кисть для окон
+	wc.lpszMenuName=NULL;                                                          	// Ресурс меню окон
+	wc.cbClsExtra=0;                                                           	// Дополнительная память
+	wc.cbWndExtra=0;                                                                        	// Дополнительная память
+
+	// Pегистрация класса окна.
+	RegisterClass(&wc);
+
+	// Создаем главное окно приложения.
+	hWnd=CreateWindow(
+		ClassName,                                      	// Имя класса окон
+		AppTitle,                                          	// Заголовок окна
+		WS_OVERLAPPEDWINDOW,                   	// Стиль окна
+		CW_USEDEFAULT,                                     	// X-координаты
+		CW_USEDEFAULT,                                     	// Y-координаты
+		CW_USEDEFAULT,                                     	// Ширина окна
+		CW_USEDEFAULT,                                     	// Высота окна
+		NULL,                                             	// Дескриптор окна-родителя
+		NULL,                                             	// Дескриптор меню окна
+		hInst,                                                	// Дескриптор экземпляра приложения
+		NULL);                                            	// Дополнительная информация
+	if(!hWnd)
+	{
+		// Окно не создано, выдаем предупреждение.
+		MessageBox(NULL,"Create: error",AppTitle,MB_OK|MB_ICONSTOP);
+		return FALSE;
+	}
+
+	// Отображаем окно.
+	ShowWindow(hWnd, nCmdShow);
+
+	// Обновляем содержимое клиентской области окна.
+	UpdateWindow(hWnd);
+
+
+	hMainMenu=CreateMenu(); // создаем главное меню
+
+hMenuFile=CreatePopupMenu(); //#1 создаем всплывающее меню "Файл"
+AppendMenu(hMenuFile,MF_STRING,ID_OPEN,"Открыть\tCtrl+O"); // добавляем пункт "Открыть" в всплывающее меню "Файл"
+AppendMenu(hMenuFile,MF_STRING,ID_OPEN,"Сохранить\tCtrl+S"); // добавляем пункт "Открыть" в всплывающее меню "Файл"
+
+AppendMenu(hMenuFile,MF_SEPARATOR,0,NULL); // добавляем разделительную черту
+AppendMenu(hMenuFile,MF_STRING,ID_EXIT,"Выход"); // добавляем пункт "Выход" в всплывающее меню "Файл"
+
+AppendMenu(hMainMenu,MF_POPUP,(UINT)hMenuFile,"Файл"); //#1 добавляем всплывающее меню "Файл" в главное меню
+
+AppendMenu(hMainMenu,MF_STRING,ID_HELP,"Справка");  //#3 добавляем пункт "Помощь" в главное меню
+
+SetMenu(hWnd,hMainMenu); // устанавливаем главное меню в окно
+DrawMenuBar(hWnd); // отображаем главное меню
+
+	hWndEdit1=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|WS_TABSTOP,
+240,20,200,25,hWnd,(HMENU)ID_edit1,hInst,NULL);
+
+	hWndEdit2=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,60,200,25,hWnd,(HMENU)ID_edit2,hInst,NULL);
+
+		hWndEdit3=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,100,200,25,hWnd,(HMENU)ID_edit3,hInst,NULL);
+
+
+
+	// Запускаем цикл обработки очереди сообщений. Функция GetMessage получает
+	// сообщение из очереди, выдает false при выборке из очереди сообщения WM_QUIT
+	while(GetMessage(&msg, NULL, 0, 0))
+	{
+		// Преобразование некоторых сообщений, полученных с помощью клавиатуры
+		TranslateMessage(&msg);
+
+		// Отправляем сообщение оконной процедуре
+		DispatchMessage(&msg);
+	}
+
+	return msg.wParam;
+}
+
+// --- Функция окна
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+
+
+	static char fullpath[1024]; // создаем строку - буфер обмена
+OPENFILENAME ofn; // создаем структуру с именем ofn
+memset(&ofn, 0, sizeof(OPENFILENAME));// заполняем нулями структуру ofn (т.е очищаем)
+//заполняем только основные поля
+ofn.lStructSize=sizeof (OPENFILENAME);// размер структуры в байтах
+ofn.hwndOwner=hWnd;// идентификатор окна, создавшего диалоговое окно
+ofn.nFilterIndex=1; // указываем индекс фильтра
+ofn.lpstrFile=fullpath;// адрес строки, где будет содержаться имя выбранного файла, самое нужное поле	
+// будет использоваться для 
+ofn.nMaxFile=1024;// размер буфера для записи пути к файлу 
+ofn.lpstrInitialDir="C:\\";// с какой папки начать просмотр
+ofn.lpstrTitle="Заголовок будущего диалога";//заголовок диалог
+ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY;// внешний вид
+ofn.lpstrDefExt="txt";
+
+
+	switch(msg)
+	{
+
+		case WM_COMMAND:
+{	
+	UINT idCtl=LOWORD(wParam); // идентификатор
+
+	switch(idCtl)
+	{
+	case ID_SAVE:
+ofn.lpstrTitle="Сохранить данные в файл:";//заголовок диалога
+if (GetSaveFileName(&ofn))// вызвать стандартный диалог
+{
+	char text1 [100]; // создаем строку text1
+	char text2 [100]; // создаем строку text2
+	char text3 [100]; // создаем строку text3
+					
+	// получаем данные из полей в строки text1,text2,text3
+	GetWindowText(hWndEdit1,text1,strlen(text1));
+	GetWindowText(hWndEdit2,text2,strlen(text2));
+	GetWindowText(hWndEdit3,text3,strlen(text3));
+
+					
+	FILE* filewrite;  // создаем структуру файла с именем filewrite
+	filewrite =fopen(ofn.lpstrFile,"w+"); // fopen - открывает файл
+	// w+ - сохраняем с режимом перезаписи
+
+	fprintf(filewrite,"%s %s %s",text1,text2,text3); // выводим данные из строк в файл
+
+	fclose(filewrite); //обязательно закрываем файл					
+
+}									
+// если была нажата кнопка «Отмена»
+else MessageBox(hWnd, "Не выбран файл"," Сообщение " , MB_OK);			
+break;
+
+
+	case ID_EXIT: // пункт меню выбран
+		PostQuitMessage(0);  // закрыть приложение
+		break;
+
+	case ID_HELP:// пункт меню выбран
+		MessageBox(hWnd, "Выбран пункт меню Помощь", "Window", 
+			MB_OK|MB_ICONINFORMATION);
+		break;	
+
+	}
+}; return 0;
+
+		// Пользователь удалил окно.
+	case WM_DESTROY:
+		{
+			// Если данная функция является оконной функцией главного окна, то
+			// следует в очередь сообщений приложения послать сообщение WM_QUIT
+			PostQuitMessage(0);
+		}; break;
+
+		// Необработанные сообщения передаем в стандартную
+		// функцию обработки сообщений по умолчанию.
+	default: return DefWindowProc(hWnd, msg, wParam, lParam);
+	}
+	return 01;
+}
+

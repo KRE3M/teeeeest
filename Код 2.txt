@@ -1,0 +1,387 @@
+#include <windows.h> // Заголовочный файл для Windows-приложений
+#include <stdio.h> // работа с файлом
+
+
+static char fullpath[256]; // создаем строку - буфер обмена
+
+OPENFILENAME ofn; // создаем структуру с именем ofn
+//memset(&ofn, 0, sizeof(OPENFILENAME));// заполняем нулями структуру ofn (т.е очищаем)
+
+
+#define ID_static1 11
+#define ID_static2 12
+#define ID_static3 13
+#define ID_static4 14
+#define ID_static5 15
+#define ID_static6 16
+#define ID_static7 17
+#define ID_static8 18
+#define ID_static9 19
+#define ID_static11 21
+#define ID_static12 22
+#define ID_static13 23
+
+#define ID_edit1 21 
+#define ID_edit2 22
+#define ID_edit3 23 
+#define ID_edit4 24
+#define ID_edit5 25
+#define ID_edit6 26
+#define ID_edit7 27
+#define ID_edit8 28
+#define ID_edit9 29
+#define ID_edit11 31
+#define ID_edit12 32
+
+#define ID_button1 1
+
+#define ID_OPEN  40  // создаем идентификатор для пункта "Загрузить файл"
+#define ID_EXIT	 41	// создаем идентификатор для пункта "Выход"
+#define ID_SAVE	 42	// создаем идентификатор для пункта "Сохранить файл"
+#define ID_HELP	 43	// создаем идентификатор для пункта "Справка"
+
+
+static HWND hWndStatic1;
+static HWND hWndStatic2;
+static HWND hWndStatic3;
+static HWND hWndStatic4;
+static HWND hWndStatic5;
+static HWND hWndStatic6;
+static HWND hWndStatic7;
+static HWND hWndStatic8;
+static HWND hWndStatic9;
+static HWND hWndStatic11;
+static HWND hWndStatic12;
+
+static HWND hWndEdit1;
+static HWND hWndEdit2;
+static HWND hWndEdit3;
+static HWND hWndEdit4;
+static HWND hWndEdit5;
+static HWND hWndEdit6;
+static HWND hWndEdit7;
+static HWND hWndEdit8;
+static HWND hWndEdit9;
+static HWND hWndEdit11;
+static HWND hWndEdit12;
+
+static HWND hWndButton1;
+
+static HMENU hMainMenu; // создаем дескриптор главного меню
+static HMENU hMenuFile; //#1 создаем дескриптор всплывающего меню "Файл"
+static HMENU hMenuHelp; //#3 создаем дескриптор всплывающего меню "Помощь"
+
+
+HINSTANCE hInst;  //Дескриптор экземпляра приложения – это уникальное число, идентифицирующее программу, работающую под Windows
+
+// ---  Создаем текстовые переменные (массивы) для использования их в функции WinMain
+char ClassName[]="Window"; 		   // Название класса окна
+char AppTitle[]="Application Win32"; // Заголовок главного окна
+
+// --- Описание функции главного окна, необходимо, 
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+
+
+// --- Функция WinMain
+int WINAPI WinMain(
+	HINSTANCE hInstance,      // Дескриптор экземпляра приложения
+	HINSTANCE hPrevInstance,  // В Win32 всегда равен NULL
+	LPSTR lpCmdLine,          // Указатель на командную строку. Он позволяет
+	// приложению получать данные из командной строки.
+	int nCmdShow              // Определяет, как приложение первоначально
+	// отображается на дисплее
+	)
+{
+	
+
+	// Сохраняем дескриптор экземпляра приложения в глобальной переменной,
+	// чтобы при необходимости воспользоваться им в функции окна.
+	hInst=hInstance;
+
+
+//------------СОЗДАНИЕ ГЛАВНОГО ОКНА-----------------------------------//
+	WNDCLASS wc;    // Структура для информации о класса окна
+	HWND hWnd;  	// Дескриптор окна приложения - уникальное число, идентифицирующее окно данного приложения.
+    MSG msg;        // Структура для хранения сообщения
+
+	// --- Нет готового класса окна, поэтому регистрируем новый
+	// Заполнение структуры WNDCLASS для регистрации класса окна.
+	memset(&wc, 0, sizeof(wc));
+	wc.lpszClassName=ClassName;                            // Имя класса окон
+	wc.lpfnWndProc=(WNDPROC)WndProc;                       // Адрес оконной функции
+	wc.style=CS_HREDRAW|CS_VREDRAW;                        // Стиль класса окон
+	wc.hInstance=hInstance;                                // Экземпляр приложения
+	wc.hIcon=LoadIcon(NULL,IDI_APPLICATION);               // Пиктограмма для окон
+	wc.hCursor=LoadCursor(NULL,IDC_ARROW);                 // Курсор мыши для окон
+	wc.hbrBackground=(HBRUSH)GetStockObject(WHITE_BRUSH);  // Кисть для окон
+	wc.lpszMenuName=NULL;                                  // Ресурс меню окон
+	wc.cbClsExtra=0;                                       // Дополнительная память
+	wc.cbWndExtra=0;                                       // Дополнительная память
+
+	// Pегистрация класса окна
+	RegisterClass(&wc);
+
+
+	// Создаем главное окно приложения.
+	hWnd=CreateWindow(
+		ClassName,            // Имя класса окон
+		AppTitle,             // Заголовок окна
+		WS_OVERLAPPEDWINDOW,  // Стиль окна
+		CW_USEDEFAULT,        // X-координаты
+		CW_USEDEFAULT,        // Y-координаты
+		CW_USEDEFAULT,        // Ширина окна
+		CW_USEDEFAULT,        // Высота окна
+		NULL,                 // Дескриптор окна-родителя
+		NULL,                 // Дескриптор меню окна
+		hInst,                // Дескриптор экземпляра приложения
+		NULL);                // Дополнительная информация
+	if (!hWnd)
+	{
+		// Окно не создано, выдаем предупреждение.
+		MessageBox(NULL, "Create: error", AppTitle, MB_OK | MB_ICONSTOP);
+		return FALSE;
+	}
+
+	// Отображаем окно.
+	ShowWindow(hWnd, nCmdShow);
+
+	// Обновляем содержимое клиентской области окна.
+	UpdateWindow(hWnd);
+
+	hMainMenu=CreateMenu(); // создаем главное меню
+
+hMenuFile=CreatePopupMenu(); //#1 создаем всплывающее меню "Файл"
+AppendMenu(hMenuFile,MF_STRING,ID_OPEN,"Загрузить файл\tCtrl+O"); // добавляем пункт "Открыть" в всплывающее меню "Файл"
+AppendMenu(hMenuFile,MF_STRING,ID_SAVE,"Сохранить файл\tCtrl+S"); // добавляем пункт "Открыть" в всплывающее меню "Файл"
+AppendMenu(hMenuFile,MF_SEPARATOR,0,NULL); // добавляем разделительную черту
+AppendMenu(hMenuFile,MF_STRING,ID_EXIT,"Выход"); // добавляем пункт "Выход" в всплывающее меню "Файл"
+
+AppendMenu(hMainMenu,MF_POPUP,(UINT)hMenuFile,"Файл"); //#1 добавляем всплывающее меню "Файл" в главное меню
+
+AppendMenu(hMainMenu,MF_STRING,ID_HELP,"Справка");  //#2 добавляем пункт "Помощь" в главное меню
+
+SetMenu(hWnd,hMainMenu); // устанавливаем главное меню в окно
+DrawMenuBar(hWnd); // отображаем главное меню
+
+
+
+
+hWndButton1=CreateWindow("button","Очистить",	                        // создаем кнопку
+WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | BS_PUSHBUTTON | WS_TABSTOP,
+460, 20, 150, 25, hWnd, (HMENU)ID_button1, hInst, NULL);
+                                                                        // Статичный текст
+	hWndStatic1=CreateWindow("static","Фамилия Имя Отчество",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,20,200,25,hWnd,(HMENU)ID_static1,hInst,NULL);
+
+	hWndStatic2=CreateWindow("static","Дата рождения",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,60,200,25,hWnd,(HMENU)ID_static2,hInst,NULL);
+
+	hWndStatic3=CreateWindow("static","Пол",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,100,200,25,hWnd,(HMENU)ID_static3,hInst,NULL);
+
+	hWndStatic4=CreateWindow("static","Место рождения",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,140,200,25,hWnd,(HMENU)ID_static4,hInst,NULL);
+
+	hWndStatic5=CreateWindow("static","Семейное положение(ФИО жены/мужа)",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,180,200,35,hWnd,(HMENU)ID_static5,hInst,NULL);
+
+	hWndStatic6=CreateWindow("static","Какой организацией и когда зарегистрирован брак",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,230,200,35,hWnd,(HMENU)ID_static6,hInst,NULL);
+
+	hWndStatic7=CreateWindow("static","ФИО отца и матери",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,280,200,25,hWnd,(HMENU)ID_static7,hInst,NULL);
+
+	hWndStatic8=CreateWindow("static","Место жительства",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,310,200,25,hWnd,(HMENU)ID_static8,hInst,NULL);
+
+	hWndStatic9=CreateWindow("static","Состоял ли в иностранном гражданстве и когда принят в Рос. гражданство",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,340,200,35,hWnd,(HMENU)ID_static9,hInst,NULL);
+
+	hWndStatic11=CreateWindow("static","Причина выдачи/замены паспорта",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,390,200,35,hWnd,(HMENU)ID_static11,hInst,NULL);
+
+	hWndStatic12=CreateWindow("static","Дата",
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, 
+20,430,200,25,hWnd,(HMENU)ID_static12,hInst,NULL);
+	                                                                          // Поля ввода
+	hWndEdit1=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|WS_TABSTOP,
+240,20,200,25,hWnd,(HMENU)ID_edit1,hInst,NULL);
+
+	hWndEdit2=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,60,200,25,hWnd,(HMENU)ID_edit2,hInst,NULL);
+
+		hWndEdit3=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,100,200,25,hWnd,(HMENU)ID_edit3,hInst,NULL);
+
+			hWndEdit4=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,140,200,25,hWnd,(HMENU)ID_edit4,hInst,NULL);
+
+				hWndEdit5=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,180,200,25,hWnd,(HMENU)ID_edit5,hInst,NULL);
+
+					hWndEdit6=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,230,200,25,hWnd,(HMENU)ID_edit6,hInst,NULL);
+
+						hWndEdit7=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,280,200,25,hWnd,(HMENU)ID_edit7,hInst,NULL);
+
+							hWndEdit8=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,310,200,25,hWnd,(HMENU)ID_edit8,hInst,NULL);
+
+								hWndEdit9=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,340,200,25,hWnd,(HMENU)ID_edit9,hInst,NULL);
+
+									hWndEdit11=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,390,200,25,hWnd,(HMENU)ID_edit11,hInst,NULL);
+
+										hWndEdit12=CreateWindow("edit",NULL,
+WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_BORDER|ES_LEFT|ES_AUTOHSCROLL|WS_TABSTOP,
+240,430,200,25,hWnd,(HMENU)ID_edit12,hInst,NULL);
+
+
+
+	
+
+
+
+// --------------------------------------------------------------------//
+
+	// Запускаем цикл обработки очереди сообщений. Функция GetMessage получает
+	// сообщение из очереди, выдает false при выборке из очереди сообщения WM_QUIT
+while (GetMessage (&msg, NULL, 0, 0))
+{
+	if (!IsDialogMessage(hWnd, &msg))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+return msg.wParam;
+
+
+}
+
+// --- Функция окна
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+
+	static char fullpath[256]; // создаем строку - буфер обмена
+OPENFILENAME ofn; // создаем структуру с именем ofn
+memset(&ofn, 0, sizeof(OPENFILENAME));// заполняем нулями структуру ofn (т.е очищаем)
+	//заполняем только основные поля
+ofn.lStructSize=sizeof (OPENFILENAME);// размер структуры в байтах
+ofn.hwndOwner=hWnd;// идентификатор окна, создавшего диалоговое окно
+ofn.nFilterIndex=1; // указываем индекс фильтра
+ofn.lpstrFile=fullpath;// адрес строки, где будет содержаться имя выбранного файла, самое нужное поле	
+// будет использоваться для 
+ofn.nMaxFile=256;// размер буфера для записи пути к файлу 
+ofn.lpstrInitialDir="C:\\";// с какой папки начать просмотр
+ofn.lpstrTitle="Заголовок будущего диалога";//заголовок диалог
+ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY;// внешний вид
+ofn.lpstrDefExt="txt";
+
+	switch(msg) // цикл обработки сообщений
+	{
+		// С помощью сообщения WM_DESTROY завершаем приложение при нажатии крестика в правом верхнем углу
+	case WM_DESTROY:
+		{			
+			PostQuitMessage(0);
+		}; break;
+
+		case ID_SAVE:
+ofn.lpstrTitle="Сохранить данные в файл:";//заголовок диалога
+if (GetSaveFileName(&ofn))// вызвать стандартный диалог
+{
+	char text1 [100]; // создаем строку text1
+	char text2 [100]; // создаем строку text2
+	char text3 [100]; // создаем строку text3
+	char text4 [100]; // создаем строку text1
+	char text5 [100]; // создаем строку text2
+	char text6 [100]; // создаем строку text3
+    char text7 [100]; // создаем строку text1
+	char text8 [100]; // создаем строку text2
+	char text9 [100]; // создаем строку text3
+	char text11 [100]; // создаем строку text3
+	char text12 [100]; // создаем строку text3
+					
+	// получаем данные из полей в строки text1,text2,text3
+	GetWindowText(hWndEdit1,text1,strlen(text1));
+	GetWindowText(hWndEdit2,text2,strlen(text2));
+	GetWindowText(hWndEdit3,text3,strlen(text3));
+	GetWindowText(hWndEdit4,text4,strlen(text4));
+	GetWindowText(hWndEdit5,text5,strlen(text5));
+	GetWindowText(hWndEdit6,text6,strlen(text6));
+	GetWindowText(hWndEdit7,text7,strlen(text7));
+	GetWindowText(hWndEdit8,text8,strlen(text8));
+	GetWindowText(hWndEdit9,text9,strlen(text9));
+	GetWindowText(hWndEdit11,text11,strlen(text11));
+	GetWindowText(hWndEdit12,text12,strlen(text12));
+
+					
+	FILE* filewrite;  // создаем структуру файла с именем filewrite
+	filewrite =fopen(ofn.lpstrFile,"w+"); // fopen - открывает файл
+	// w+ - сохраняем с режимом перезаписи
+
+	fprintf(filewrite,"%s %s %s %s %s %s %s %s %s %s %s",text1,text2,text3,text4,text5,text6,text7,text8,text9,text11,text12); // выводим данные из строк в файл
+
+	fclose(filewrite); //обязательно закрываем файл					
+
+}									
+// если была нажата кнопка «Отмена»
+else MessageBox(hWnd, "Не выбран файл"," Сообщение " , MB_OK);			
+break;
+
+
+		case WM_COMMAND:
+{	
+	unsigned int idCtl=LOWORD(wParam); // идентификатор дочер. окна
+	unsigned int code=HIWORD(wParam);  // код уведомления
+			
+
+	switch (idCtl)
+	{
+
+		case ID_button1:					
+            SetWindowText(hWndEdit1,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit2,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit3,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit4,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit5,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit6,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit7,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit8,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit9,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit11,""); // очищаем текст в редакторе
+			SetWindowText(hWndEdit12,""); // очищаем текст в редакторе
+		break;
+	}
+
+}; return 0; 
+
+
+		// Необработанные сообщения передаем в стандартную функцию обработки сообщений по умолчанию.
+	default: return DefWindowProc(hWnd, msg, wParam, lParam);
+	}
+	return 0l;
+}
